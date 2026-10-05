@@ -1,0 +1,81 @@
+{
+  "experiment_id": "baseline_phase1",
+  "name": "Phase 1 Baseline Congestion Experiment",
+  "description": "Evaluates mixed broadband traffic degradation (Gaming, Video Call, Streaming, Bulk) as WAN drops from 100 Mbps to 20 Mbps without QoS.",
+  "total_duration_sec": 30.0,
+  "congestion_start_sec": 10.0,
+  "congestion_end_sec": 25.0,
+  "sampling_interval_sec": 1.0,
+  "topology": {
+    "lan_ip": "10.0.1.2",
+    "lan_subnet": "10.0.1.0/24",
+    "gw_lan_ip": "10.0.1.1",
+    "gw_wan_ip": "10.0.2.1",
+    "wan_ip": "10.0.2.2",
+    "wan_subnet": "10.0.2.0/24",
+    "initial_bandwidth_mbps": 100.0,
+    "congested_bandwidth_mbps": 20.0,
+    "wan_base_rtt_ms": 15.0,
+    "buffer_queue_limit_packets": 100
+  },
+  "flows": [
+    {
+      "flow_id": "flow_gaming",
+      "traffic_type": "gaming",
+      "protocol": "udp",
+      "src_ip": "10.0.1.2",
+      "dst_ip": "10.0.2.2",
+      "src_port": 4001,
+      "dst_port": 5001,
+      "target_rate_mbps": 0.1,
+      "packet_size_bytes": 96,
+      "duration_sec": 30.0,
+      "extra_params": {
+        "tick_rate_hz": 60.0
+      }
+    },
+    {
+      "flow_id": "flow_videocall",
+      "traffic_type": "video_call",
+      "protocol": "udp",
+      "src_ip": "10.0.1.2",
+      "dst_ip": "10.0.2.2",
+      "src_port": 4002,
+      "dst_port": 5002,
+      "target_rate_mbps": 2.5,
+      "packet_size_bytes": 1200,
+      "duration_sec": 30.0,
+      "extra_params": {
+        "fps": 30.0
+      }
+    },
+    {
+      "flow_id": "flow_streaming",
+      "traffic_type": "video_streaming",
+      "protocol": "udp",
+      "src_ip": "10.0.1.2",
+      "dst_ip": "10.0.2.2",
+      "src_port": 4003,
+      "dst_port": 5003,
+      "target_rate_mbps": 8.0,
+      "packet_size_bytes": 1400,
+      "duration_sec": 30.0,
+      "extra_params": {
+        "chunk_size_bytes": 1000000,
+        "chunk_interval_sec": 2.5
+      }
+    },
+    {
+      "flow_id": "flow_bulk",
+      "traffic_type": "bulk_download",
+      "protocol": "udp",
+      "src_ip": "10.0.1.2",
+      "dst_ip": "10.0.2.2",
+      "src_port": 4004,
+      "dst_port": 5004,
+      "target_rate_mbps": 0.0,
+      "packet_size_bytes": 1400,
+      "duration_sec": 30.0
+    }
+  ]
+}

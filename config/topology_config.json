@@ -1,0 +1,27 @@
+{
+  "namespaces": {
+    "lan_client": {
+      "ip": "10.0.1.2/24",
+      "default_gw": "10.0.1.1",
+      "interface": "veth-lan-c"
+    },
+    "qos_gw": {
+      "lan_ip": "10.0.1.1/24",
+      "lan_interface": "veth-lan-gw",
+      "wan_ip": "10.0.2.1/24",
+      "wan_interface": "veth-wan-gw",
+      "ip_forwarding": true
+    },
+    "wan_server": {
+      "ip": "10.0.2.2/24",
+      "default_gw": "10.0.2.1",
+      "interface": "veth-wan-s"
+    }
+  },
+  "traffic_control": {
+    "initial_rate": "100mbit",
+    "congested_rate": "20mbit",
+    "base_rtt_ms": 15.0,
+    "buffer_queue_limit": 100
+  }
+}

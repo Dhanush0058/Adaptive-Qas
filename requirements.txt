@@ -1,0 +1,2 @@
+# Adaptive QoS Engine - Dependencies
+pytest>=7.0.0

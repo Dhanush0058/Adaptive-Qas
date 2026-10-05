@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest
+.pytest_cache/
+
+# Results (keep .gitkeep if needed)
+results/*
+!results/.gitkeep
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
