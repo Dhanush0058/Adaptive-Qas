@@ -63,11 +63,16 @@ class LinkCapacityEstimator:
         latency_elevation = max(0.0, avg_latency - self.base_rtt_ms)
 
         # 3. Determine Link Saturation State
+        # Determine if the link appears saturated.
+        # Original thresholds were too aggressive for high‑capacity links, causing premature
+        # classification as saturated and a subsequent downward bias in the estimate.
+        # Updated logic raises thresholds and also requires a high utilization fraction
+        # relative to the configured WAN capacity before marking the link as saturated.
         is_saturated = (
-            (backlog_bytes > 1500)
-            or (new_drops > 0)
-            or (latency_elevation > 15.0)
-            or (snapshot.is_congested and current_aggregate_tput > 12.0)
+            backlog_bytes > 10000               # Significant queue buildup (≈10 KB)
+            or new_drops > 0                    # Any packet loss indicates congestion
+            or latency_elevation > 30.0         # Larger RTT increase suggests queuing
+            or (snapshot.is_congested and current_aggregate_tput > max(0.8 * snapshot.wan_capacity_mbps, 20.0))
         )
 
         if new_drops > 0:
@@ -123,10 +128,13 @@ class LinkCapacityEstimator:
 
         else:
             self._consecutive_saturated_samples = 0
-            # Link is not saturated; observed throughput is lower bound on capacity
-            if avg_window_tput > self._current_estimate_mbps:
-                # Upward step detected (e.g. recovered from 20M to 100M)
-                raw_sample = avg_window_tput
+            # Link is not saturated; observed throughput provides a lower bound.
+            # Allow gradual upward correction even when avg throughput is below the current estimate,
+            # provided the utilization is a substantial fraction of the configured capacity.
+            utilization_ratio = current_aggregate_tput / max(1.0, snapshot.wan_capacity_mbps)
+            if avg_window_tput > self._current_estimate_mbps or utilization_ratio > 0.6:
+                # Upward adjustment – either we observed higher throughput or the link is busy (>60%).
+                raw_sample = max(avg_window_tput, current_aggregate_tput)
                 rel_error = abs(raw_sample - self._current_estimate_mbps) / max(1.0, self._current_estimate_mbps)
                 alpha = 0.75 if rel_error > 0.30 else 0.40
                 self._current_estimate_mbps = (
@@ -138,7 +146,7 @@ class LinkCapacityEstimator:
                     change_desc = f"Capacity expansion detected: {self._last_detected_capacity:.0f}M -> {self._current_estimate_mbps:.1f}M"
                     self._last_detected_capacity = self._current_estimate_mbps
             else:
-                # Idle or light load: maintain last high-confidence capacity but reduce current confidence
+                # Light load / idle: keep previous estimate but lower confidence.
                 confidence = 0.60 if current_aggregate_tput > 5.0 else 0.40
 
         return LinkCapacityEstimate(
